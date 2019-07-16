@@ -55,7 +55,9 @@ private:
     //I use id::file attribute string to compare between two infos.
     /*!
      * \brief m_target_file
+     * <br>
      * This is a GFile handle for Item::findVolumeChildren.
+     * </br>
      * \see Item::findVolumeChildren()
      */
     GFile *m_target_file = nullptr;

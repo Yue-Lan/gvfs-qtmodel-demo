@@ -56,8 +56,11 @@ void Item::findChildren()
 
 /*!
  * \brief Item::index
- * \return QModelIndex of this item,
- * it binds with the model which we use to initialize this instance.
+ * \return index
+ * \retval QModelIndex of this item,
+ * <br>
+ * index binds with the model which we use to initialize this instance.
+ * </br>
  */
 QModelIndex Item::index()
 {
