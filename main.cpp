@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
         QSplitter *splitter = new QSplitter;
         splitter->setOrientation(Qt::Horizontal);
         QTreeView *v = new QTreeView;
+        v->setSortingEnabled(true);
         QListView *v1 = new QListView;
         v1->setViewMode(QListView::IconMode);
         v1->setSelectionMode(QAbstractItemView::ExtendedSelection);
