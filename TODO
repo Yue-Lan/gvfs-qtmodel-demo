@@ -5,3 +5,4 @@
 * if needed, add interaction dialog (implement GMountOperation) when loading children for a volume (maybe sftp:///, etc), and consider blocking ui.
 * consider wether there is a way to free the collapsed tree item's children without custom view help (maybe no way).
 * sort internal? or use sort/filter proxy model?
+* implement dnd.
