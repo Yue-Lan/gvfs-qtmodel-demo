@@ -68,9 +68,13 @@ void Info::querySync()
         GFileType type = g_file_info_get_file_type (m_file_info);
         switch (type) {
         case G_FILE_TYPE_DIRECTORY:
+            qDebug()<<"dir";
             m_is_dir = true;
+            break;
         case G_FILE_TYPE_MOUNTABLE:
+            qDebug()<<"mountable";
             m_is_volume = true;
+            break;
         default:
             break;
         }

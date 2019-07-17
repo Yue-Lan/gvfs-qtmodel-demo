@@ -31,15 +31,22 @@ SOURCES += \
         mainwindow.cpp \
     item.cpp \
     info.cpp \
-    model.cpp
+    model.cpp \
+    mounthelper.cpp \
+    mountdialog.cpp
 
 HEADERS += \
         mainwindow.h \
     item.h \
     info.h \
-    model.h
+    model.h \
+    mounthelper.h \
+    mountdialog.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+FORMS += \
+    mountdialog.ui
