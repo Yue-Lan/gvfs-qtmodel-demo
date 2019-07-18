@@ -4,6 +4,8 @@
 
 #include "mounthelper.h"
 
+#include <QMessageBox>
+
 #include <QDebug>
 
 Item::Item(Info *info, Item *parent_item, Model *model, QObject *parent) : QObject(parent)
@@ -29,18 +31,19 @@ void Item::findChildren()
 {
     GError *err = nullptr;
     GFileEnumerator *enumerator = g_file_enumerate_children(m_info->m_file,
-                                                            "standard::*," G_FILE_ATTRIBUTE_ID_FILE,
+                                                            "standard::*," G_FILE_ATTRIBUTE_TIME_MODIFIED G_FILE_ATTRIBUTE_ID_FILE,
                                                             G_FILE_QUERY_INFO_NONE,
                                                             nullptr, &err);
     if (err != nullptr) {
         qDebug()<<"is dir:"<<this->m_info->isDir()<<"is volume:"<<this->m_info->isVolume();
         qDebug()<<"code:"<<err->code<<"message"<<err->message;
+        int code = err->code;
         g_error_free(err);
         err = nullptr;
         g_object_unref(enumerator);
-        if (this->m_info->isVolume())
+        if (this->m_info->isVolume() && code == G_IO_ERROR_NOT_DIRECTORY)
             findVolumeChildren();
-        else {
+        else if (code == G_IO_ERROR_NOT_MOUNTED) {
             qDebug()<<"mount enclosing volume";
             MountHelper *mount_helper = new MountHelper(this->m_info->m_file, this);
             mount_helper->showMountDialog();
@@ -62,11 +65,23 @@ void Item::findChildren()
                 }
 
                 g_free(target_uri);
-
+                /*!
+                  \note
+                  Maybe I need use enumerator, but it never happend in tree view. Because we
+                  should mount enclosing volume first, then volume would show in computer. At
+                  that time, we can expand it directly.
+                */
                 this->m_model->setRoot(Info::fromGFile(target_location));
             });
             qDebug()<<"wait async";
             //mount enclosing volume, and find children.
+        } else {
+            QMessageBox *msg_box = new QMessageBox;
+            //how about path?
+            char *uri = g_file_get_uri(m_info->m_file);
+            msg_box->critical(msg_box, tr("error"), tr("can not load: ")+uri);
+            delete uri;
+            return;
         }
     } else {
         GFileInfo *ginfo;
@@ -78,6 +93,7 @@ void Item::findChildren()
             info->querySync();
             Item *item = new Item(info, this, this->m_model, nullptr);
             m_children->append(item);
+            g_object_unref (ginfo);
             ginfo = g_file_enumerator_next_file (enumerator, nullptr, nullptr);
         }
         g_object_unref(enumerator);
@@ -123,7 +139,7 @@ GAsyncReadyCallback Item::mounted_callback(GObject *source_object,
     g_free(target_uri);
 
     GFileEnumerator *enumerator = g_file_enumerate_children(target_location,
-                                                            "standard::*," G_FILE_ATTRIBUTE_ID_FILE,
+                                                            "standard::*," G_FILE_ATTRIBUTE_TIME_MODIFIED G_FILE_ATTRIBUTE_ID_FILE,
                                                             G_FILE_QUERY_INFO_NONE,
                                                             nullptr, nullptr);
 

@@ -11,6 +11,16 @@ class Model : public QAbstractItemModel
 {
     friend class Info;
     friend class Item;
+
+    enum ColumnType {
+        FileName,
+        FileSize,
+        FileType,
+        ModifiedDate,
+        Owner,
+        Other
+    };
+
 public:
     explicit Model(QObject *parent = nullptr);
     ~Model() override;

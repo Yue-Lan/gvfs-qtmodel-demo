@@ -36,6 +36,15 @@ Info *Model::infoFromIndex(const QModelIndex &index)
     return item->m_info;
 }
 
+/*!
+ * \brief Model::indexFromItem
+ * \param item
+ * \return first column index of model item.
+ * \deprecated I'm not sure if I will use it,
+ * it may work well in list view. But, in other view,
+ * there might be more than one columns, so there are
+ * several index at one row.
+ */
 QModelIndex Model::indexFromItem(Item *item)
 {
     if (item == m_rootItem) {
@@ -55,24 +64,43 @@ QModelIndex Model::indexFromItem(Item *item)
     return QModelIndex();
 }
 
+/*!
+  \note
+  <br>
+  Children item must return index correctly. For now, it just return first row index.
+  So, other columns of children won't be shown.
+  </br>
+*/
 QModelIndex Model::index(int row, int column, const QModelIndex &parent) const
 {
+    /*children of root item*/
     //qDebug()<<row<<column<<parent;
-    if (column != 0)
-        return QModelIndex();
     if (!parent.isValid()) {
         if (row < 0 || row > m_root_item_children->count()-1)
             return QModelIndex();
         return createIndex(row, column, m_root_item_children->at(row));
+        //do I need createIndex by column?
     }
 
+    /*children of item which has parent*/
     Item *parent_item = static_cast<Item*>(parent.internalPointer());
     //qDebug()<<parent_item->m_info->displayName();
     if (row < 0 && row >parent_item->m_children->count())
         return QModelIndex();
-    if (parent_item->m_children)
-        return parent_item->m_children->at(row)->index();
-    else {
+    if (parent_item->m_children) {
+        //should indexFromItem be de deprecated?
+        return createIndex(row, column, parent_item->m_children->at(row));
+        /*
+        switch (column) {
+        case FileName:
+            return parent_item->m_children->at(row)->index();
+        case FileSize:
+            return createIndex(row, column, parent_item->m_children->at(row));
+        default:
+            return QModelIndex();
+        }
+        */
+    } else {
         return QModelIndex();
     }
 }
@@ -88,7 +116,7 @@ QModelIndex Model::parent(const QModelIndex &child) const
 int Model::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 1;
+    return ColumnType::ModifiedDate+1;
 }
 
 int Model::rowCount(const QModelIndex &parent) const
@@ -98,15 +126,6 @@ int Model::rowCount(const QModelIndex &parent) const
     Item *item = static_cast<Item*>(parent.internalPointer());
     if (item->hasChildren())
         return item->m_children->count();
-    /*
-    //qDebug()<<item->m_info->displayName();
-    if (item == m_rootItem)
-        return m_root_item_children->count();
-    else if (item->m_parent != nullptr) {
-        qDebug()<<"has parent";
-        return item->m_parent->m_children->count();
-    }
-    */
     return 0;
 }
 
@@ -114,24 +133,56 @@ QVariant Model::data(const QModelIndex &index, int role) const
 {
     Item *item = static_cast<Item*>(index.internalPointer());
     item->m_info->querySync();
-    //qDebug()<<item->m_info->displayName();
+    //qDebug()<<item->m_info->displayName()<<index.row()<<index.column();
     if (item->m_info == nullptr)
         return QVariant();
-    switch (role) {
-    case Qt::DisplayRole:
-        return item->m_info->displayName();
-    case Qt::DecorationRole:
-        return QVariant(QIcon::fromTheme(item->m_info->iconName()));
+
+    switch (index.column()) {
+    case FileName:
+        switch (role) {
+        case Qt::DisplayRole:
+            return item->m_info->displayName();
+        case Qt::DecorationRole:
+            return QVariant(QIcon::fromTheme(item->m_info->iconName()));
+        default:
+            return QVariant();
+        }
+    case FileSize:
+        if (role == Qt::DisplayRole && !(item->hasChildren()))
+            return item->m_info->fileSize();
+        return QVariant();
+    case FileType:
+        //qDebug()<<item->m_info->displayName()<<item->m_info->fileType();
+        if (role == Qt::DisplayRole)
+            return item->m_info->fileType();
+        return QVariant();
+    case ModifiedDate:
+        if (role == Qt::DisplayRole)
+            return item->m_info->modifiedDate();
+        return QVariant();
     default:
-        break;
+        return QVariant();
     }
-    return QVariant();
 }
 
 QVariant Model::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role == Qt::DisplayRole)
-        return tr("File Name");
+    if (orientation == Qt::Vertical)
+        return QVariant();
+    if (role == Qt::DisplayRole) {
+        switch (section) {
+        case FileName:
+            return tr("File Name");
+        case FileSize:
+            return tr("File Size");
+        case FileType:
+            return tr("File Type");
+        case ModifiedDate:
+            return tr("Modified Date");
+        default:
+            return QVariant();
+        }
+    }
     //if (role == Qt::DecorationRole)
     //    return QVariant(QIcon::fromTheme("folder"));
     return QAbstractItemModel::headerData(section, orientation, role);
@@ -139,6 +190,7 @@ QVariant Model::headerData(int section, Qt::Orientation orientation, int role) c
 
 bool Model::hasChildren(const QModelIndex &parent) const
 {
+    /*root children index doesn't have a parent*/
     if (!parent.isValid())
         return true;
     Item *item = static_cast<Item*>(parent.internalPointer());
@@ -160,7 +212,7 @@ bool Model::canFetchMore(const QModelIndex &parent) const
 
 void Model::fetchMore(const QModelIndex &parent)
 {
-    //qDebug()<<"fetchMore"<<parent;
+    qDebug()<<"fetchMore"<<parent.column();
     if (!parent.isValid())
         return;
     Item *parent_item = static_cast<Item*>(parent.internalPointer());
@@ -173,7 +225,6 @@ void Model::fetchMore(const QModelIndex &parent)
         return;
     }
     parent_item->findChildren();
-
 }
 
 Qt::ItemFlags Model::flags(const QModelIndex &index) const

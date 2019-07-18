@@ -32,6 +32,9 @@ public:
     bool isRemote() {return m_is_remote;}
     bool isLoaded() {return m_is_loaded;}
     QString displayName() {return m_display_name;}
+    QString fileSize() {return  m_file_size;}
+    QString fileType() {return m_file_type;}
+    QString modifiedDate() {return  m_modified_date;};
     QString iconName() {return m_icon_name;}
     QString fileID() {return m_file_id;}
 
@@ -49,6 +52,14 @@ private:
     QString m_display_name = nullptr;
     QString m_icon_name = nullptr;
     QString m_file_id = nullptr;
+
+    QString m_content_type = nullptr;
+    guint64 m_size = 0;
+    guint64 m_modified_time = 0;
+
+    QString m_file_type = nullptr;
+    QString m_file_size = nullptr;
+    QString m_modified_date = nullptr;
 
     GFile *m_file = nullptr;
     GFile *m_parent = nullptr;
