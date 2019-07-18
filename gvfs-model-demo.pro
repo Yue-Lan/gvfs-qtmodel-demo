@@ -33,7 +33,9 @@ SOURCES += \
     info.cpp \
     model.cpp \
     mounthelper.cpp \
-    mountdialog.cpp
+    mountdialog.cpp \
+    globalwatcher.cpp \
+    monitor.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +43,9 @@ HEADERS += \
     info.h \
     model.h \
     mounthelper.h \
-    mountdialog.h
+    mountdialog.h \
+    globalwatcher.h \
+    monitor.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

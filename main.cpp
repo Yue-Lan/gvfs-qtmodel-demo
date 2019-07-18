@@ -7,6 +7,9 @@
 #include "info.h"
 #include "model.h"
 
+#include "globalwatcher.h"
+#include "monitor.h"
+
 #include <QLineEdit>
 #include <QLayout>
 
@@ -16,6 +19,21 @@ int main(int argc, char *argv[])
 {
     QIcon::setThemeName("ukui-icon-theme");
     QApplication a(argc, argv);
+
+    GlobalWatcher *watcher = GlobalWatcher::getInstance();
+    watcher->registerUri("file:///home/lanyue");
+
+    Monitor *monitor = watcher->get_monitor_by_uri("file:///home/lanyue");
+    if (monitor->isValid()) {
+        qDebug()<<"valid";
+    }
+    QObject::connect(monitor, &Monitor::fileCreated, [=](QString uri){
+        qDebug()<<"file created"<<uri;
+    });
+    QObject::connect(&a, &QApplication::destroyed, [=](){
+        delete monitor;
+    });
+
     /*
     Info *i = Info::fromUri("file:///");
     i->querySync();
@@ -35,7 +53,8 @@ int main(int argc, char *argv[])
     tv.show();
     qDebug()<<i->displayName()<<"icon:"<<i->iconName()<<"id:"<<i->fileID();
     */
-    QLineEdit *edit = new QLineEdit;;
+    MainWindow w;
+    QLineEdit *edit = new QLineEdit(&w);
     edit->setText("computer:///");
     edit->show();
     QObject::connect(edit, &QLineEdit::returnPressed, [=](){
@@ -59,9 +78,7 @@ int main(int argc, char *argv[])
         v1->setModel(m);
         splitter->show();
     });
-
     //delete i;
-    MainWindow w;
     w.setFixedSize(600, 480);
     w.layout()->addWidget(edit);
     w.show();
