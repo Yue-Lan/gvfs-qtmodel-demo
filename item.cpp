@@ -165,3 +165,36 @@ void Item::findVolumeChildren()
     g_file_mount_mountable(m_info->m_file, G_MOUNT_MOUNT_NONE,
                            nullptr, nullptr, GAsyncReadyCallback(mounted_callback), this);
 }
+
+/*!
+ * \brief Item::prepareForSetRoot
+ * \return
+ * \note
+ * some item has children, but they can not reach directly.
+ * We need do some special to let item can find its children correctly.
+ * I may need to redesign the process of setRoot()
+ */
+bool Item::prepareForSetRoot()
+{
+    GError *err = nullptr;
+    GFileEnumerator *enumerator = g_file_enumerate_children(m_info->m_file,
+                                                            G_FILE_ATTRIBUTE_STANDARD_NAME,
+                                                            G_FILE_QUERY_INFO_NONE,
+                                                            nullptr, &err);
+    if (err != nullptr) {
+        qDebug()<<"is dir:"<<this->m_info->isDir()<<"is volume:"<<this->m_info->isVolume();
+        qDebug()<<"code:"<<err->code<<"message"<<err->message;
+        g_error_free(err);
+        err = nullptr;
+        g_object_unref(enumerator);
+        //i need do some err handling here,
+        //at least we need to mount volume and get the real uri of item.
+        //we should setRoot after we handled the problem, otherwise problems may occur.
+        //but aslo remember dealing with the tree view volume expanding is necessary.
+        //i'm not intent to change findChildren() method.
+        //maybe enclosing volume handle need move here.
+        //err handle always an async job.
+        return false;
+    }
+    return true;
+}

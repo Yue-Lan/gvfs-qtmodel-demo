@@ -42,6 +42,7 @@ void GlobalWatcher::destroyNow()
  */
 bool GlobalWatcher::registerUri(QString uri)
 {
+    m.lock();
     Monitor *monitor = m_hash->value(uri);
     if (monitor == nullptr) {
         monitor = new Monitor(uri);
@@ -50,17 +51,20 @@ bool GlobalWatcher::registerUri(QString uri)
     } else {
         monitor->ref();
     }
+    m.unlock();
     return monitor->isValid();
 }
 
 void GlobalWatcher::unregisterUri(QString uri)
 {
+    m.lock();
     Monitor *monitor = m_hash->value(uri);
     if (monitor) {
         monitor->unref();
         if (monitor->refCount() == 0)
             m_hash->remove(uri);
     }
+    m.unlock();
 }
 
 /*!

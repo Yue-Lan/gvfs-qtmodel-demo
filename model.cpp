@@ -21,6 +21,12 @@ Model::~Model()
 void Model::setRoot(Info *rootInfo)
 {
     beginResetModel();
+    /*!
+      \note
+      if we delete root item here, we can not use infoFromIndex() for doubleclicked
+      location changing in icon view.
+      it is a bad desgin, maybe we need use ref/unref to manage item.
+     */
     delete m_rootItem;
     m_rootItem = new Item(rootInfo, nullptr, this);
     m_rootItem->findChildren();

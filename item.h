@@ -33,6 +33,7 @@ public:
 
     void findChildren();
     bool hasChildren(){return m_has_children;}
+    bool prepareForSetRoot();
     QModelIndex index();
 
 Q_SIGNALS:

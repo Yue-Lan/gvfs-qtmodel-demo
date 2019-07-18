@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QHash>
+#include <QMutex>
 #include "monitor.h"
 
 class GlobalWatcher : public QObject
@@ -28,6 +29,7 @@ private:
     explicit GlobalWatcher(QObject *parent = nullptr);
     ~GlobalWatcher();
     QHash<QString, Monitor*> *m_hash = nullptr;
+    QMutex m;
 };
 
 #endif // GLOBALWATCHER_H

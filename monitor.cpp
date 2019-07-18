@@ -58,7 +58,7 @@ Monitor::Monitor(QString uri, QObject *parent) : QObject(parent)
 
 Monitor::~Monitor()
 {
-    qDebug()<<"~monitor";
+    qDebug()<<"~monitor"<<m_uri;
     g_signal_handler_disconnect(m_file_monitor, m_handler_id);
     g_file_monitor_cancel (m_file_monitor);
     g_object_unref(m_file_monitor);
@@ -74,6 +74,6 @@ void Monitor::ref()
 void Monitor::unref()
 {
     m_ref_count--;
+    if (m_ref_count == 0)
+        delete this;
 }
-
-

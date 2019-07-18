@@ -4,8 +4,11 @@
 #include <QObject>
 #include <gio/gio.h>
 
+class GlobalWatcher;
+
 class Monitor : public QObject
 {
+    friend class GlobalWatcher;
     Q_OBJECT
 public:
     /*!
@@ -22,6 +25,10 @@ public:
      */
     explicit Monitor(QString uri, QObject *parent = nullptr);
     bool isValid() {return m_is_valid;}
+
+    ~Monitor();
+
+private:
     /*!
      * \brief ref
      * <br>
@@ -44,9 +51,7 @@ public:
      */
     void unref();
     int refCount() {return m_ref_count;}
-    ~Monitor();
 
-private:
     QString m_uri = nullptr;
     GFile *m_monitored_file = nullptr;
     GFileMonitor *m_file_monitor = nullptr;
