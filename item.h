@@ -5,6 +5,8 @@
 #include <QVector>
 #include <gio/gio.h>
 
+#include <memory>
+
 class Info;
 class Model;
 
@@ -24,7 +26,7 @@ public:
      * </br>
      * \param parent
      */
-    explicit Item(Info *info, Item *parent_item = nullptr, Model *model = nullptr, QObject *parent = nullptr);
+    explicit Item(std::shared_ptr <Info> info, Item *parent_item = nullptr, Model *model = nullptr, QObject *parent = nullptr);
     ~Item();
 
     bool operator==(const Item &item) {
@@ -34,6 +36,8 @@ public:
     void findChildren();
     bool hasChildren(){return m_has_children;}
     bool prepareForSetRoot();
+    void handleErrorAndResetModelAsync();
+    Model *model() {return m_model;}
     QModelIndex index();
 
 Q_SIGNALS:
@@ -60,11 +64,18 @@ protected:
      * </br>
      */
     void findVolumeChildren();
+    void mountEnclosingVolumeAndGoTo();
+    void mountEnclosingVolumeAndFetchMore();
 
 private:
     static GAsyncReadyCallback mounted_callback(GObject *source_object,
-                                         GAsyncResult *res,
-                                         Item *item);
+                                                GAsyncResult *res,
+                                                Item *item);
+
+    static GAsyncReadyCallback err_handle_mount_volume_callback(GObject *source_object,
+                                                                GAsyncResult *res,
+                                                                Item *item);
+
     /*!
      * \brief m_has_children is a convinience value for check if item has children.
      * <br>
@@ -83,7 +94,8 @@ private:
      * </br>
      */
     bool m_had_expanded = false;
-    Info *m_info = nullptr;
+    //Info *m_info = nullptr;
+    std::shared_ptr<Info> m_info = nullptr;
     Item *m_parent = nullptr;
 
     Model *m_model;

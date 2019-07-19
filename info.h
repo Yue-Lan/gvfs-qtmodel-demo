@@ -4,6 +4,8 @@
 #include <QString>
 #include <gio/gio.h>
 
+#include <memory>
+
 class Item;
 
 class Info
@@ -21,10 +23,15 @@ public:
         return false;
     }
 
-    static Info* fromPath(QString path);
-    static Info* fromUri(QString uri);
-    static Info* fromGFile(GFile *file);
-    static Info* fromGFileInfo(GFile *parent, GFileInfo *fileInfo);
+    //static Info* fromPath(QString path);
+    //static Info* fromUri(QString uri);
+    //static Info* fromGFile(GFile *file);
+    //static Info* fromGFileInfo(GFile *parent, GFileInfo *fileInfo);
+
+    static std::shared_ptr<Info> fromPath(QString path);
+    static std::shared_ptr<Info> fromUri(QString uri);
+    static std::shared_ptr<Info> fromGFile(GFile *file);
+    static std::shared_ptr<Info> fromGFileInfo(GFile *parent, GFileInfo *fileInfo);
 
     bool isVaild() {return m_is_valid;}
     bool isDir() {return m_is_dir;}

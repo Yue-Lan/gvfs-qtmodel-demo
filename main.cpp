@@ -7,6 +7,8 @@
 #include "info.h"
 #include "model.h"
 
+#include "item.h"
+
 #include "globalwatcher.h"
 #include "monitor.h"
 
@@ -59,7 +61,7 @@ int main(int argc, char *argv[])
     edit->show();
     QObject::connect(edit, &QLineEdit::returnPressed, [=](){
         qDebug()<<"goto";
-        Info *info = Info::fromUri(edit->text());
+        auto info = Info::fromUri(edit->text());
 
         QSplitter *splitter = new QSplitter;
         splitter->setOrientation(Qt::Horizontal);
@@ -77,6 +79,12 @@ int main(int argc, char *argv[])
         v->setModel(m);
         v1->setModel(m);
         splitter->show();
+        QObject::connect(v1, &QListView::doubleClicked, [=](const QModelIndex &index){
+            Item *item = static_cast<Item*>(index.internalPointer());
+            Model *model = item->model();
+            auto info = model->infoFromIndex(index);
+            model->setRoot(info);
+        });
     });
     //delete i;
     w.setFixedSize(600, 480);

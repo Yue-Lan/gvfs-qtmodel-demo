@@ -10,6 +10,7 @@ Info::Info()
 
 Info::~Info()
 {
+    qDebug()<<"~Info";
     g_object_unref(m_parent);
     m_parent = nullptr;
     g_object_unref(m_file);
@@ -18,9 +19,10 @@ Info::~Info()
     m_file_info = nullptr;
 }
 
-Info *Info::fromUri(QString uri)
+std::shared_ptr<Info> Info::fromUri(QString uri)
 {
-    Info *info = new Info;
+    std::shared_ptr<Info> p = std::make_shared<Info>();
+    Info *info = p.get();
     info->m_file = g_file_new_for_uri(uri.toUtf8());
     info->m_parent = g_file_get_parent(info->m_file);
     info->m_is_remote = !g_file_is_native(info->m_file);
@@ -28,12 +30,13 @@ Info *Info::fromUri(QString uri)
                                           "standard::*," G_FILE_ATTRIBUTE_TIME_MODIFIED G_FILE_ATTRIBUTE_ID_FILE,
                                           G_FILE_QUERY_INFO_NONE, nullptr,
                                           nullptr);
-    return info;
+    return p;
 }
 
-Info *Info::fromPath(QString path)
+std::shared_ptr<Info> Info::fromPath(QString path)
 {
-    Info *info = new Info;
+    std::shared_ptr<Info> p = std::make_shared<Info>();
+    Info *info = p.get();
     info->m_file = g_file_new_for_path(path.toUtf8());
     info->m_parent = g_file_get_parent(info->m_file);
     info->m_is_remote = !g_file_is_native(info->m_file);
@@ -41,12 +44,13 @@ Info *Info::fromPath(QString path)
                                           "standard::*," G_FILE_ATTRIBUTE_TIME_MODIFIED G_FILE_ATTRIBUTE_ID_FILE,
                                           G_FILE_QUERY_INFO_NONE, nullptr,
                                           nullptr);
-    return info;
+    return p;
 }
 
-Info *Info::fromGFile(GFile *file)
+std::shared_ptr<Info> Info::fromGFile(GFile *file)
 {
-    Info *info = new Info;
+    std::shared_ptr<Info> p = std::make_shared<Info>();
+    Info *info = p.get();
     info->m_file = g_file_dup(file);
     info->m_parent = g_file_get_parent(info->m_file);
     info->m_is_remote = !g_file_is_native(info->m_file);
@@ -54,12 +58,13 @@ Info *Info::fromGFile(GFile *file)
                                           "standard::*," G_FILE_ATTRIBUTE_TIME_MODIFIED G_FILE_ATTRIBUTE_ID_FILE,
                                           G_FILE_QUERY_INFO_NONE, nullptr,
                                           nullptr);
-    return info;
+    return p;
 }
 
-Info *Info::fromGFileInfo(GFile *parent, GFileInfo *fileInfo)
+std::shared_ptr<Info> Info::fromGFileInfo(GFile *parent, GFileInfo *fileInfo)
 {
-    Info *info = new Info;
+    std::shared_ptr<Info> p = std::make_shared<Info>();
+    Info *info = p.get();
     info->m_parent = parent;
     info->m_file = g_file_get_child(parent, g_file_info_get_name(fileInfo));
     //info->m_file_info = g_file_info_dup(fileInfo);
@@ -68,7 +73,7 @@ Info *Info::fromGFileInfo(GFile *parent, GFileInfo *fileInfo)
                                           G_FILE_QUERY_INFO_NONE, nullptr,
                                           nullptr);
     info->querySync();
-    return info;
+    return p;
 }
 
 void Info::querySync()

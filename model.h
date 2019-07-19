@@ -4,6 +4,8 @@
 #include <QAbstractItemModel>
 #include <QVector>
 
+#include <memory>
+
 class Item;
 class Info;
 
@@ -24,10 +26,10 @@ class Model : public QAbstractItemModel
 public:
     explicit Model(QObject *parent = nullptr);
     ~Model() override;
-    void setRoot(Info *rootInfo);
+    void setRoot(std::shared_ptr<Info> rootInfo);
 
     Item *itemFromIndex(const QModelIndex &index) {return static_cast<Item*>(index.internalPointer());}
-    Info *infoFromIndex(const QModelIndex &index);
+    std::shared_ptr<Info> infoFromIndex(const QModelIndex &index);
     QModelIndex indexFromInfo(Info *info);
     QModelIndex indexFromItem(Item *item);
     Item *itemFromInfo(Info *info);

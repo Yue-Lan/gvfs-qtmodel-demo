@@ -18,24 +18,38 @@ Model::~Model()
     //QAbstractItemModel::~QAbstractItemModel();
 }
 
-void Model::setRoot(Info *rootInfo)
+void Model::setRoot(std::shared_ptr<Info> rootInfo)
 {
     beginResetModel();
     /*!
       \note
       if we delete root item here, we can not use infoFromIndex() for doubleclicked
       location changing in icon view.
-      it is a bad desgin, maybe we need use ref/unref to manage item.
+      for now i use std::share_ptr manage info.
      */
     delete m_rootItem;
-    m_rootItem = new Item(rootInfo, nullptr, this);
-    m_rootItem->findChildren();
+    auto info = rootInfo;
+    info->querySync();
+    m_rootItem = new Item(info, nullptr, this);
+    if (m_rootItem->prepareForSetRoot()) {
+        beginResetModel();
+        m_rootItem->findChildren();
+        m_root_item_children = m_rootItem->m_children;
+        endResetModel();
+    } else {
+        beginResetModel();
+        m_root_item_children = m_rootItem->m_children;
+        endResetModel();
+        //handleErrorAndResetModelAsync() is an async method,
+        //and it will recall setRoot when err handle done.
+        m_rootItem->handleErrorAndResetModelAsync();
+    }
     //does m_root_item_children need use weak ref?
-    m_root_item_children = m_rootItem->m_children;
-    endResetModel();
+
+
 }
 
-Info *Model::infoFromIndex(const QModelIndex &index)
+std::shared_ptr<Info> Model::infoFromIndex(const QModelIndex &index)
 {
     Item *item = static_cast<Item*>(index.internalPointer());
     //item->m_info->querySync();
@@ -93,19 +107,11 @@ QModelIndex Model::index(int row, int column, const QModelIndex &parent) const
     //qDebug()<<parent_item->m_info->displayName();
     if (row < 0 && row >parent_item->m_children->count())
         return QModelIndex();
+    if (column < 0 && column > ModifiedDate)
+        return QModelIndex();
     if (parent_item->m_children) {
         //should indexFromItem be de deprecated?
-        return createIndex(row, column, parent_item->m_children->at(row));
-        /*
-        switch (column) {
-        case FileName:
-            return parent_item->m_children->at(row)->index();
-        case FileSize:
-            return createIndex(row, column, parent_item->m_children->at(row));
-        default:
-            return QModelIndex();
-        }
-        */
+        return parent_item->m_children->at(row)->index();
     } else {
         return QModelIndex();
     }
