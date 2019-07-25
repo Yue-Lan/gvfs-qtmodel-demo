@@ -111,7 +111,8 @@ QModelIndex Model::index(int row, int column, const QModelIndex &parent) const
         return QModelIndex();
     if (parent_item->m_children) {
         //should indexFromItem be de deprecated?
-        return parent_item->m_children->at(row)->index();
+        //return parent_item->m_children->at(row)->index();
+        return createIndex(row, column, parent_item->m_children->at(row));
     } else {
         return QModelIndex();
     }
@@ -145,7 +146,7 @@ QVariant Model::data(const QModelIndex &index, int role) const
 {
     Item *item = static_cast<Item*>(index.internalPointer());
     item->m_info->querySync();
-    //qDebug()<<item->m_info->displayName()<<index.row()<<index.column();
+    //qDebug()<<item->m_info->displayName()<<index.row()<<index.column()<<role;
     if (item->m_info == nullptr)
         return QVariant();
 
